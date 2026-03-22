@@ -78,7 +78,7 @@ function getReferralLink(creatorId, productId) {
           return reject(new Error("Not approved"));
         }
 
-        const link = `http://localhost:3500/product/${productId}?ref=${creatorId}`;
+        const link = `http://localhost:3500/api/v1/product/${productId}?ref=${creatorId}`;
 
         resolve(link);
       }

@@ -1,11 +1,14 @@
 const router = require("express").Router();
 const role = require('../middlewares/roleMiddleware')
+const authMiddleware = require('../middlewares/authMiddleware')
 const {
   createReferralApplication,
   getApplicationsByBrandId,
   updateApplicationStatus,
   getReferralLink
 } = require("../services/referralService");
+
+router.use(authMiddleware)
 
 router.post("/", role(["creator"]), async (req, res) => {
   try {
