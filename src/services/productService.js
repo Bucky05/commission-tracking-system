@@ -50,4 +50,22 @@ function getAllProducts() {
     );
   });
 }
-module.exports = { addProduct, getProductsForBrand, getAllProducts, getProductsByBrandId };
+
+function getProductById(productId) {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT * FROM products WHERE id = ?',
+      [productId],
+      (err, results) => {
+        if (err) return reject(err);
+
+        if (results.length === 0) {
+          return reject(new Error("Product not found"));
+        }
+
+        resolve(results[0]);
+      }
+    );
+  });
+}
+module.exports = { addProduct, getProductsForBrand, getAllProducts, getProductsByBrandId, getProductById};
