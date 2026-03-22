@@ -19,8 +19,8 @@ function findUserByEmail(email) {
       'SELECT * FROM users WHERE email = ?',
       [email],
       (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
+        if (err) reject(err);
+        else resolve(results);
       }
     );
   });
