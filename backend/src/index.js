@@ -4,7 +4,7 @@ const authRouter = require('./routes/auth');
 const referralRouter = require('./routes/referral')
 const conversionRouter = require('./routes/conversion')
 const productRouter = require('./routes/products')
-
+const payoutRouter = require('./routes/payout')
 
 
 app.use(express.json());
@@ -17,6 +17,7 @@ app.use('/api/v1/referral',referralRouter)
 
 app.use('/api/v1/conversion',conversionRouter)
 
+app.use('/api/v1/payout',payoutRouter)
 app.listen(3500, () => {
   console.log('Server running');
 });

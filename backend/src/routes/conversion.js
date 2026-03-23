@@ -3,9 +3,9 @@ const { getProductById } = require('../services/productService')
 const auth = require('../middlewares/authMiddleware')
 const role = require('../middlewares/roleMiddleware')
 const router = require('express').Router()
-
-router.use(auth,role(['brand']))
-router.post('/',  async (req, res) => {
+const { updateLedgerStatus, updateAvailableBalance} = require('../services/ledgerService')
+router.use(auth)
+router.post('/',  role(['brand']), async (req, res) => {
   try {
     const { productId, creatorId, referenceId } = req.body;
 
@@ -29,6 +29,10 @@ router.post('/',  async (req, res) => {
     // Get product
     const product = await getProductById(productId);
 
+    if(product.brand_id != req.user.id) {
+      res.status(403).send("Invalid product Id")
+      return
+    }
     const commission =
       (product.price * product.commission_percentage) / 100;
 
@@ -48,6 +52,29 @@ router.post('/',  async (req, res) => {
 
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// this can be automated or all the conversion can be considered true/approved by default but this is good for extra security checks
+router.patch('/:id/approve', role(['admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get conversion
+    const conversion = await conversionService.getConversionById(id);
+
+    const { creator_id, commission } = conversion;
+
+    // Update wallet
+    await updateAvailableBalance(creator_id, commission);
+
+    // Update ledger
+    await updateLedgerStatus(id,'approved');
+
+    res.json({ message: 'Approved' });
+
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 
