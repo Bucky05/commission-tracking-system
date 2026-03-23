@@ -24,7 +24,24 @@ router.get('/:productId', async (req, res) => {
   }
 });
 
+router.get("/",async (req,res) => {
+    try {
+        const products = await productService.getAllProducts()
+        res.json(products)
+    } catch(err) {
+        res.status(500).json({message:err.message})
+    }
+})
 
+router.get("/brand/:brandId",async (req,res) => {
+    try {
+        const brandId = req.params.brandId
+        const products = await productService.getProductsByBrandId(brandId)
+        res.json(products)
+    } catch(err) {
+        res.status(500).json({message:err.message})
+    }
+})
 router.use(authMiddleware)
 
 router.post("/", role(["brand"]), async (req, res) => {
@@ -50,24 +67,7 @@ router.get("/my-products",role(["brand"]),async (req,res) => {
     }
 })
 
-router.get("/",async (req,res) => {
-    try {
-        const products = await productService.getAllProducts()
-        res.json(products)
-    } catch(err) {
-        res.status(500).json({message:err.message})
-    }
-})
 
-router.get("/brand/:brandId",async (req,res) => {
-    try {
-        const brandId = req.params.brandId
-        const products = await productService.getProductsByBrandId(brandId)
-        res.json(products)
-    } catch(err) {
-        res.status(500).json({message:err.message})
-    }
-})
 
 
 module.exports = router;
