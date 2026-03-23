@@ -1,4 +1,5 @@
 const db = require('../db/db')
+const {createLedger} = require('./ledgerService')
 
 function checkApproval(productId, creatorId) {
   return new Promise((resolve, reject) => {
@@ -44,10 +45,15 @@ function createConversion(data) {
       ],
       (err, result) => {
         if (err) return reject(err);
-        resolve(result);
+        else {
+            createLedger(data.creatorId,data.commission,data.referenceId)
+            resolve()
+        }
       }
     );
   });
 }
+
+
 
 module.exports = { checkApproval, checkDuplicate, createConversion }
