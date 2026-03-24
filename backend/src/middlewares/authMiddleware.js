@@ -5,7 +5,7 @@ module.exports = (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'No token' });
 
   try {
-    const decoded = verify(token);
+    const decoded = verify(token.slice(7));
     req.user = decoded;
     next();
   } catch {

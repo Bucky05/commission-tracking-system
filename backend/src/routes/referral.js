@@ -5,17 +5,18 @@ const {
   createReferralApplication,
   getApplicationsByBrandId,
   updateApplicationStatus,
-  getReferralLink
+  getReferralLink,
+  getApplicationsByCreatorId
 } = require("../services/referralService");
 
 router.use(authMiddleware)
 
 router.post("/", role(["creator"]), async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { product_id } = req.body;
     const creatorId = req.user.id;
 
-    await createReferralApplication(productId, creatorId);
+    await createReferralApplication(product_id, creatorId);
     res.json("Application submitted");
   } catch (err) {
     res.status(400).json({ error: err });
@@ -26,6 +27,16 @@ router.get("/brand", role(["brand"]), async (req, res) => {
   const brandId = req.user.id;
   try {
     const applications = await getApplicationsByBrandId(brandId);
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/creator", role(["creator"]), async (req, res) => {
+  const creatorId = req.user.id;
+  try {
+    const applications = await getApplicationsByCreatorId(creatorId);
     res.json(applications);
   } catch (err) {
     res.status(500).json({ error: err.message });

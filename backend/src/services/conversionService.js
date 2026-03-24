@@ -72,5 +72,20 @@ function getConversionById(id) {
   });
 }
 
+function getAllPendingConversions() {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT c.*
+       FROM conversions c
+       JOIN ledger l 
+         ON l.reference_id = c.reference_id AND l.type = 'credit'
+       WHERE l.status = 'pending'`,
+      (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      }
+    );
+  });
+}
 
-module.exports = { checkApproval, checkDuplicate, createConversion, getConversionById }
+module.exports = { checkApproval, checkDuplicate, createConversion, getConversionById , getAllPendingConversions}

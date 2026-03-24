@@ -1,6 +1,6 @@
 const db = require("../db/db");
 
-function createReferralApplication(creatorId, productId) {
+function createReferralApplication(productId, creatorId) {
   return new Promise((resolve, reject) => {
     db.query(
       "INSERT INTO applications (creator_id, product_id) VALUES (?, ?)",
@@ -87,11 +87,28 @@ function getReferralLink(creatorId, productId) {
   });
 }
 
+function getApplicationsByCreatorId(creatorId) {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT a.*, p.name AS product_name, u.email AS brand_email
+        FROM applications a
+        JOIN products p ON a.product_id = p.id
+        JOIN users u ON p.brand_id = u.id
+        WHERE a.creator_id = ?`,
+      [creatorId],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      },
+    );
+  });
+}
 
 
 module.exports = {
   createReferralApplication,
   getApplicationsByBrandId,
   updateApplicationStatus,
-  getReferralLink
+  getReferralLink,
+  getApplicationsByCreatorId
 };

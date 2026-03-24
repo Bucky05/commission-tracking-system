@@ -21,13 +21,13 @@ function createLedger(creatorId, commission, transactionType, referenceId) {
 }
 
 
-function updateLedgerStatus(referenceId,status) {
+function updateLedgerStatus(id,status) {
   return new Promise((resolve, reject) => {
     db.query(
       `UPDATE ledger 
        SET status = ? 
-       WHERE reference_id = ?`,
-      [status,referenceId],
+       WHERE id = ?`,
+      [status,id],
       (err, result) => {
         if (err) return reject(err);
         resolve(result);
@@ -65,12 +65,12 @@ function updateAvailableBalance(creatorId, commission) {
 function getWalletBalance(creatorId) {
   return new Promise((resolve, reject) => {
     db.query(
-      'SELECT available_balance FROM wallets WHERE creator_id = ?',
+      'SELECT * FROM wallets WHERE creator_id = ?',
       [creatorId],
       (err, result) => {
         if (err) return reject(err);
 
-        const balance = result[0]?.available_balance || 0;
+        const balance = result[0]
         resolve(balance);
       }
     );

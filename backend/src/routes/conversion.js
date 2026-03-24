@@ -4,8 +4,9 @@ const auth = require('../middlewares/authMiddleware')
 const role = require('../middlewares/roleMiddleware')
 const router = require('express').Router()
 const { updateLedgerStatus, updateAvailableBalance} = require('../services/ledgerService')
-router.use(auth)
-router.post('/',  role(['brand']), async (req, res) => {
+
+router.post('/',   async (req, res) => {
+  // in production this should be a webhook call by brand ( add role["brand"] middleware)
   try {
     const { productId, creatorId, referenceId } = req.body;
 
@@ -29,10 +30,11 @@ router.post('/',  role(['brand']), async (req, res) => {
     // Get product
     const product = await getProductById(productId);
 
-    if(product.brand_id != req.user.id) {
-      res.status(403).send("Invalid product Id")
-      return
-    }
+    // uncomment below code when this is triggered through webhook
+    // if(product.brand_id != req.user.id) {
+    //   res.status(403).send("Invalid product Id")
+    //   return
+    // }
     const commission =
       (product.price * product.commission_percentage) / 100;
 
@@ -54,6 +56,16 @@ router.post('/',  role(['brand']), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.use(auth)
+router.get('/', role(['admin']), async (req, res) => {
+  // this route can be used by admin to get all conversions and check their status and details
+  try { 
+    const conversions = await conversionService.getAllPendingConversions();
+    res.json(conversions)
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }       
+})
 
 // this can be automated or all the conversion can be considered true/approved by default but this is good for extra security checks
 router.patch('/:id/approve', role(['admin']), async (req, res) => {
