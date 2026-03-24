@@ -46,7 +46,7 @@ function createConversion(data) {
       (err, result) => {
         if (err) return reject(err);
         else {
-            createLedger(data.creatorId,data.commission,data.referenceId)
+            createLedger(data.creatorId,data.commission,'credit', data.referenceId)
             resolve()
         }
       }
@@ -54,6 +54,23 @@ function createConversion(data) {
   });
 }
 
+function getConversionById(id) {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT creator_id, commission FROM conversions WHERE id = ?',
+      [id],
+      (err, result) => {
+        if (err) return reject(err);
+
+        if (result.length === 0) {
+          return reject(new Error("Conversion not found"));
+        }
+
+        resolve(result[0]);
+      }
+    );
+  });
+}
 
 
-module.exports = { checkApproval, checkDuplicate, createConversion }
+module.exports = { checkApproval, checkDuplicate, createConversion, getConversionById }
