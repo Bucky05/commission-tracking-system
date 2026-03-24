@@ -1,10 +1,10 @@
 const db = require("../db/db");
 
-function addProduct(brandId, name, price, commission_percentage) {
+function addProduct(brandId, name, price, commissionPercentage) {
   return new Promise((resolve, reject) => {
     db.query(
       "INSERT INTO products (brand_id, name, price, commission_percentage) VALUES (?, ?, ?, ?)",
-      [brandId, name, price, commission_percentage],
+      [brandId, name, price, commissionPercentage],
       (err, result) => {
         if (err) reject(err);
         else resolve("Product created");
