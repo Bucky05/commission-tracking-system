@@ -17,8 +17,9 @@ function createLedger(creatorId, commission, transactionType, referenceId) {
     }
   }
 )
-})
+}) 
 }
+
 
 function updateLedgerStatus(referenceId,status) {
   return new Promise((resolve, reject) => {
@@ -76,7 +77,25 @@ function getWalletBalance(creatorId) {
   });
 }
 
-function deductWalletBalance(creatorId, amount) {
+function getWalletForUpdate(creatorId) {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT available_balance FROM wallets WHERE creator_id = ? FOR UPDATE',
+      [creatorId],
+      (err, result) => {
+        if (err) return reject(err);
+
+        if (result.length === 0) {
+          return reject(new Error("Wallet not found"));
+        }
+
+        resolve(result[0].available_balance);
+      }
+    );
+  });
+}
+
+function deductWalletBalance( creatorId, amount) {
   return new Promise((resolve, reject) => {
     db.query(
       `UPDATE wallets 
@@ -97,5 +116,6 @@ module.exports = {
   updateAvailableBalance, 
   updateLedgerStatus, 
   getWalletBalance,
-  deductWalletBalance
+  deductWalletBalance,
+  getWalletForUpdate
 };

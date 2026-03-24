@@ -1,26 +1,34 @@
 const router = require('express').Router()
 const authMiddleware = require('../middlewares/authMiddleware')
 const roleMiddleware = require('../middlewares/roleMiddleware')
-const { getWalletBalance, deductWalletBalance, createLedger} = require('../services/ledgerService')
+const {  deductWalletBalance, createLedger, getWalletForUpdate} = require('../services/ledgerService')
 const { createPayout } = require('../services/payoutService')
+const db = require('../db/db')
+
+///
+
 
 router.post('/', authMiddleware, roleMiddleware(['creator']), async (req, res) => {
+  const creatorId = req.user.id;
+  const { amount } = req.body;
+
+  if (!amount || amount < 500) {
+    return res.status(400).json({ error: 'Minimum ₹500 required' });
+  }
+
   try {
-    const creatorId = req.user.id;
-    const { amount } = req.body;
+    // 1. Begin transaction
+    await new Promise((resolve, reject) =>
+      db.beginTransaction(err => (err ? reject(err) : resolve()))
+    );
 
-    // 1. Validate input
-    if (!amount || amount < 500) {
-      return res.status(400).json({ error: 'Minimum ₹500 required' });
-    }
-
-    // 2. Check balance
-    const balance = await getWalletBalance(creatorId);
+    // 2. Lock wallet + get balance
+    const balance = await getWalletForUpdate(creatorId);
 
     if (balance < amount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
+      throw new Error("Insufficient balance");
     }
-    // Ideally should be done in single Transaction
+
     // 3. Create payout
     const payoutId = await createPayout(creatorId, amount);
 
@@ -28,13 +36,20 @@ router.post('/', authMiddleware, roleMiddleware(['creator']), async (req, res) =
     await deductWalletBalance(creatorId, amount);
 
     // 5. Ledger entry
-    await createLedger(creatorId, amount,'debit',payoutId);
+    await createLedger(creatorId, amount, 'debit', payoutId);
 
-    res.json({ message: 'Payout requested' });
+    // 6. Commit
+    await new Promise((resolve, reject) =>
+      db.commit(err => (err ? reject(err) : resolve()))
+    );
+
+    res.json({ message: 'Payout requested', payoutId });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    // rollback on any failure
+    await new Promise(resolve => db.rollback(() => resolve()));
+
+    res.status(400).json({ error: err.message });
   }
 });
-
 module.exports = router
